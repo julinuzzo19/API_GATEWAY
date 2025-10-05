@@ -1,4 +1,3 @@
-// src/utils/logger.ts
 import winston from "winston";
 import { config } from "../config/config";
 
