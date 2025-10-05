@@ -4,9 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node --env-file=.env dist/src/app.js",
+    "dev": "tsx watch --env-file=.env --clear-screen=false src/server.ts",
     "build": "tsc",
-    "dev": "tsx watch --env-file=.env --clear-screen=false src/app.ts"
+    "start": "node --env-file=.env dist/src/server.js",
+    "clean": "rimraf dist",
+    "rebuild": "npm run clean && npm run build"
   },
   "repository": {
     "type": "git",

@@ -9,7 +9,6 @@ interface Config {
   services: ServiceConfig;
   security: {
     gatewaySecret: string;
-    jwtSecret: string;
   };
   rateLimit: {
     windowMs: number;
@@ -28,7 +27,6 @@ function validateConfig(): Config {
   const requiredVars = [
     "AUTH_SERVICE_URL",
     "GATEWAY_SECRET",
-    "JWT_SECRET",
     "PORT",
     "NODE_ENV",
   ];
@@ -61,7 +59,6 @@ function validateConfig(): Config {
     },
     security: {
       gatewaySecret: process.env.GATEWAY_SECRET!,
-      jwtSecret: process.env.JWT_SECRET!,
     },
     rateLimit: {
       windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000", 10),

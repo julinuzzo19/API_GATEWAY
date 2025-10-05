@@ -7,7 +7,7 @@ import { logger } from "../utils/logger";
 interface UserInfo {
   id: string;
   email: string;
-  roles: string[];
+  role: string;
 }
 
 // Extender el tipo Request de Express para incluir user
@@ -53,6 +53,7 @@ export async function authMiddleware(
   const startTime = Date.now();
 
   try {
+    console.log({ HEADERS: req.headers });
     // Extraer el token del header Authorization
     const authHeader = req.headers.authorization;
 
@@ -94,7 +95,7 @@ export async function authMiddleware(
       // Setear headers para los microservicios
       req.headers["x-user-id"] = cached.user.id;
       req.headers["x-user-email"] = cached.user.email;
-      req.headers["x-user-roles"] = cached.user.roles.join(",");
+      req.headers["x-user-role"] = cached.user.role;
       req.headers["x-gateway-secret"] = config.security.gatewaySecret;
 
       req.user = cached.user;
@@ -105,12 +106,15 @@ export async function authMiddleware(
     // Token no está en caché, validar con Auth Service
     logger.debug("Validating token with Auth Service");
 
-    const response = await axios.get(`${config.services.auth}/auth/validate`, {
-      headers: {
-        authorization: authHeader,
-      },
-      timeout: 5000, // Timeout de 5 segundos para evitar bloqueos largos
-    });
+    const response = await axios.get(
+      `${config.services.auth}/api/auth/validate`,
+      {
+        headers: {
+          authorization: authHeader,
+        },
+        timeout: 5000, // Timeout de 5 segundos para evitar bloqueos largos
+      }
+    );
 
     // Verificar la respuesta del Auth Service
     if (!response.data.valid) {
@@ -144,7 +148,7 @@ export async function authMiddleware(
     // Setear headers que los microservicios van a leer
     req.headers["x-user-id"] = user.id;
     req.headers["x-user-email"] = user.email;
-    req.headers["x-user-roles"] = user.roles.join(",");
+    req.headers["x-user-role"] = user.role;
     req.headers["x-gateway-secret"] = config.security.gatewaySecret;
 
     // También adjuntar al objeto request para uso local si es necesario
