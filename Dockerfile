@@ -1,51 +1,47 @@
+# Build stage
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copiar package.json y package-lock.json
+# Copiar archivos de dependencias
 COPY package*.json ./
+COPY tsconfig.json ./
 
 # Instalar dependencias
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci
 
 # Copiar código fuente
-COPY . .
+COPY src ./src
 
 # Compilar TypeScript
 RUN npm run build
 
-# ====================================
-# Etapa de producción
-# ====================================
-FROM node:22-alpine AS production
+# Production stage
+FROM node:22-alpine
 
 WORKDIR /app
 
-# Instalar curl para health checks
-RUN apk add --no-cache curl
+# Copiar package files
+COPY package*.json ./
 
-# Crear usuario no-root para seguridad
+# Instalar solo dependencias de producción
+RUN npm ci --only=production && npm cache clean --force
+
+# Copiar código compilado desde builder
+COPY --from=builder /app/dist ./dist
+
+# Usuario no root por seguridad
 RUN addgroup -g 1001 -S nodejs && \
-    adduser -S gateway -u 1001
+    adduser -S nodejs -u 1001
 
-# Copiar dependencias y archivos compilados desde builder
-COPY --from=builder --chown=gateway:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=gateway:nodejs /app/dist ./dist
-COPY --from=builder --chown=gateway:nodejs /app/package*.json ./
-
-# Crear directorio para logs
-RUN mkdir -p /app/logs && \
-    chown -R gateway:nodejs /app/logs
-
-# Cambiar a usuario no-root
-USER gateway
+USER nodejs
 
 # Exponer puerto
 EXPOSE 3000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Comando de inicio
 CMD ["node", "dist/server.js"]
