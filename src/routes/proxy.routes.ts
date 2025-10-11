@@ -50,6 +50,26 @@ router.use(
   })
 );
 
+/** Proxy Inventory */
+
+router.use(
+  "/inventory",
+  // authMiddleware,
+  createProxyMiddleware({
+    target: config.services.inventory,
+    changeOrigin: true,
+    logger: console,
+    pathRewrite: (path, _req) => {
+      const newPath = `/api/v1/inventory${path}`;
+      console.log(`[INVENTORY] Rewriting: ${path} -> ${newPath}`);
+      return newPath;
+    },
+    on: {
+      proxyReq: fixRequestBody, // Fix para reenviar el body correctamente
+    },
+  })
+);
+
 // Catch-all para rutas no encontradas (al final)
 router.use((req, res) => {
   logger.warn("Route not found", {

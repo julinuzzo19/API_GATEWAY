@@ -1,6 +1,7 @@
 interface ServiceConfig {
   auth: string;
   ecommerce: string;
+  inventory: string;
 }
 
 interface Config {
@@ -26,6 +27,8 @@ function validateConfig(): Config {
   // Lista de variables de entorno requeridas
   const requiredVars = [
     "AUTH_SERVICE_URL",
+    "INVENTORY_SERVICE_URL",
+    "ECOMMERCE_SERVICE_URL",
     "GATEWAY_SECRET",
     "PORT",
     "NODE_ENV",
@@ -56,6 +59,7 @@ function validateConfig(): Config {
     services: {
       auth: process.env.AUTH_SERVICE_URL!,
       ecommerce: process.env.ECOMMERCE_SERVICE_URL!,
+      inventory: process.env.INVENTORY_SERVICE_URL!,
     },
     security: {
       gatewaySecret: process.env.GATEWAY_SECRET!,
